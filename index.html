@@ -1,1 +1,71 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Tap Coin Telegram Friendly</title>
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<style>
+body{background:#1b1b2f;color:white;text-align:center;font-family:Arial;margin-top:40px;}
+#coins{font-size:35px;margin:20px;}
+.coin{width:180px;cursor:pointer;transition:0.15s;}
+.coin:active{transform:scale(1.2);}
+button{font-size:20px;padding:10px 20px;margin:5px;cursor:pointer;}
+</style>
+</head>
+<body>
 
+<h1>🪙 Tap Coin</h1>
+<div>Монеты: <span id="coins">0</span>⭐</div>
+<img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png" id="tapButton">
+
+<h2>Магазин</h2>
+<button onclick="buy(2,10)">x2 монеты (10⭐)</button>
+<button onclick="buy(10,30)">x10 монет (30⭐)</button>
+
+<script>
+if(window.Telegram){
+    Telegram.WebApp.ready();
+    var userId = Telegram.WebApp.initDataUnsafe.user.id;
+} else {
+    var userId = "testUser"; // для браузера
+}
+
+const display = document.getElementById('coins');
+
+// Получить текущее количество монет
+async function getCoins(){
+    const res = await fetch(`https://твой-сервер.com/coins?userId=${userId}`);
+    const data = await res.json();
+    display.innerText = data.coins;
+}
+
+// Добавить монеты
+async function addCoin(amount=1){
+    const res = await fetch(`https://твой-сервер.com/add`,{
+        method:'POST',
+        headers:{'Content-Type':'application/json'},
+        body: JSON.stringify({userId, amount})
+    });
+    const data = await res.json();
+    display.innerText = data.coins;
+}
+
+// Клик на монету
+document.getElementById('tapButton').onclick = () => addCoin(1);
+
+// Магазин
+function buy(multiplier, cost){
+    if(Number(display.innerText) >= cost){
+        addCoin(multiplier);   // бонус
+        addCoin(-cost);        // стоимость
+    } else {
+        alert("Недостаточно монет!");
+    }
+}
+
+// Инициализация
+getCoins();
+</script>
+
+</body>
+</html>
