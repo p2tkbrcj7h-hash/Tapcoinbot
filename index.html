@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Tap Coin Telegram Friendly</title>
+<title>Tap Coin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <style>
 body { background:#1b1b2f; color:white; font-family:Arial; text-align:center; margin-top:40px; }
@@ -25,28 +25,17 @@ button { font-size:20px; padding:10px 20px; margin:5px; cursor:pointer; }
 <script>
 document.addEventListener("DOMContentLoaded", () => {
 
-    // Проверка Telegram WebApp
-    if(window.Telegram){
-        Telegram.WebApp.ready();
-        var userId = Telegram.WebApp.initDataUnsafe.user.id;
-    } else {
-        var userId = "testUser"; // для браузера
-    }
-
-    // Инициализация монет
-    let coins = Number(localStorage.getItem("coins_" + userId)) || 0;
+    // Инициализация
+    let coins = 0;
     const display = document.getElementById('coins');
 
     function updateDisplay() {
         display.textContent = coins;
-        localStorage.setItem("coins_" + userId, coins);
     }
 
-    // Сразу отображаем текущее количество
-    updateDisplay();
-
     // Клик на монету
-    document.getElementById('tapButton').addEventListener("click", () => {
+    const button = document.getElementById('tapButton');
+    button.addEventListener("click", () => {
         coins += 1;
         updateDisplay();
     });
@@ -54,13 +43,16 @@ document.addEventListener("DOMContentLoaded", () => {
     // Магазин
     window.buy = (multiplier, cost) => {
         if(coins >= cost){
-            coins -= cost;       // снимаем стоимость
-            coins += multiplier; // добавляем бонус
+            coins -= cost;
+            coins += multiplier;
             updateDisplay();
         } else {
             alert("Not enough coins!");
         }
     };
+
+    // Сразу обновляем экран
+    updateDisplay();
 
 });
 </script>
