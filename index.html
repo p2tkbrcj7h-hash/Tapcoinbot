@@ -87,7 +87,7 @@ margin:10px;
 
 const server="https://tap-coin-server.onrender.com";
 
-let token=localStorage.getItem("token");
+let token=null; // теперь токен не берётся автоматически
 
 const tokenText=document.getElementById("token");
 const coins=document.getElementById("coins");
@@ -97,10 +97,7 @@ const gold=document.getElementById("gold");
 const game=document.getElementById("game");
 const ready=document.getElementById("ready");
 
-if(token){
-tokenText.innerText=token;
-}
-
+// получить токен
 document.getElementById("getToken").onclick=async()=>{
 
 const newToken=Math.random().toString(36).substring(2,10);
@@ -123,6 +120,7 @@ coins.innerText=data.coins;
 
 }
 
+// загрузить токен
 document.getElementById("loadBtn").onclick=async()=>{
 
 const t=document.getElementById("loadToken").value.trim();
@@ -143,9 +141,13 @@ coins.innerText=data.coins;
 
 }
 
+// кнопка готово
 document.getElementById("readyBtn").onclick=()=>{
 
-if(!token)return alert("Сначала получите токен");
+if(!token || token===""){
+alert("Сначала получите или загрузите токен!");
+return;
+}
 
 ready.innerText="Готово ✅";
 
