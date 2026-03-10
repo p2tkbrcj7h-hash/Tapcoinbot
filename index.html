@@ -67,12 +67,13 @@ margin-top:30px;
 const serverUrl = "https://bot-game-1-686w.onrender.com";
 
 // Генерация уникального игрока
-let userId = localStorage.getItem("userId");
-if(!userId){
-    userId = (typeof Telegram !== "undefined" && Telegram.WebApp.initDataUnsafe?.user?.id) 
-             ? Telegram.WebApp.initDataUnsafe.user.id.toString()
-             : Math.random().toString(36).substring(2);
-    localStorage.setItem("userId", userId);
+let userId;
+if(typeof Telegram !== "undefined" && Telegram.WebApp.initDataUnsafe?.user?.id){
+    // если игра открыта через Telegram WebApp
+    userId = Telegram.WebApp.initDataUnsafe.user.id.toString();
+} else {
+    // для обычного браузера — генерируем один раз
+    userId = Math.random().toString(36).substring(2);
 }
 
 const display = document.getElementById("coins");
@@ -145,6 +146,7 @@ goldChest.onclick = async () => {
     goldChest.style.display = "none";
 }
 
+// Загружаем монеты при старте
 loadCoins();
 </script>
 
