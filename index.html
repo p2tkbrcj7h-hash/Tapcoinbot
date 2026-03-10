@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tap Coin + Lucky Chest</title>
+<title>Tap Coin</title>
 <style>
 body{
   background:#1b1b2f;
@@ -12,11 +12,7 @@ body{
   margin-top:20px;
 }
 #coins{font-size:35px;margin:20px;}
-input{
-  padding:6px;
-  border-radius:5px;
-  border:none;
-}
+input{padding:6px;border-radius:5px;border:none;}
 button{
   padding:6px 10px;
   border-radius:5px;
@@ -32,7 +28,6 @@ button{
   width:170px;
   cursor:pointer;
   margin-top:20px;
-  transition:0.2s;
 }
 </style>
 </head>
@@ -51,16 +46,19 @@ button{
 
 <div id="game">
   <div id="coins">0</div>
-  <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
-  <img id="chest" class="chest" src="https://i.ibb.co/0F8ZK1P/chest.png" style="display:none;">
-  <img id="gold" class="gold" src="https://i.ibb.co/yYVYw3D/gold-chest.png" style="display:none;">
+  <!-- старая монетка -->
+  <img class="coin" src="images/coin.png">
+  <!-- обычный сундук -->
+  <img id="chest" class="chest" src="images/chest.png" style="display:none;">
+  <!-- золотой сундук -->
+  <img id="gold" class="gold" src="images/gold.png" style="display:none;">
   <br>
   <button id="leaderBtn">Показать лидерборд</button>
   <pre id="leaderboard"></pre>
 </div>
 
 <script>
-const server="https://tap-coin-server.onrender.com"; // твой сервер
+const server="https://tap-coin-server.onrender.com"; 
 let token=null;
 
 const tokenText=document.getElementById("token");
