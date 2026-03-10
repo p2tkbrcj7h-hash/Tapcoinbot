@@ -58,7 +58,7 @@ document.getElementById('registerBtn').onclick = async () => {
         body: JSON.stringify({login, password})
     });
     const data = await res.json();
-    if(data.error) alert(data.error);
+    if(data.error) alert(data.error); // показывает "логин уже занят"
     else { alert("Аккаунт создан!"); display.innerText = data.coins; }
 };
 
