@@ -2,21 +2,58 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tap Coin + Лидерборд</title>
+<title>Tap Coin + Leaderboard</title>
 <style>
 body{
-background:#1b1b2f;
-color:white;
-font-family:Arial;
-text-align:center;
-margin-top:20px;
+  background:#1b1b2f;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  margin-top:20px;
 }
-#coins{font-size:35px;margin:20px;}
-input{padding:6px;border-radius:5px;border:none;}
-button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-weight:bold;cursor:pointer;margin:5px;}
-.coin,.chest,.gold{width:170px;cursor:pointer;margin-top:20px;}
-#game{display:none;}
-#ready{font-size:22px;color:#00ff00;margin:10px;}
+
+#coins{
+  font-size:35px;
+  margin:20px;
+}
+
+input{
+  padding:6px;
+  border-radius:5px;
+  border:none;
+}
+
+button{
+  padding:6px 10px;
+  border-radius:5px;
+  border:none;
+  background:#f0a500;
+  font-weight:bold;
+  cursor:pointer;
+  margin:5px;
+}
+
+.coin,.chest,.gold{
+  width:170px;
+  cursor:pointer;
+  margin-top:20px;
+}
+
+#game{
+  display:none;
+}
+
+#ready{
+  font-size:22px;
+  color:#00ff00;
+  margin:10px;
+}
+
+#leaderboard{
+  margin-top:20px;
+  text-align:left;
+  display:inline-block;
+}
 </style>
 </head>
 <body>
@@ -24,9 +61,12 @@ button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-we
 <h1>🪙 Tap Coin</h1>
 
 <p>Ваш токен: <span id="token">нет</span></p>
-<button id="getToken">Получить токен</button><br><br>
+
+<button id="getToken">Получить токен</button>
+<br><br>
 <input id="loadToken" placeholder="Вставьте токен">
-<button id="loadBtn">Загрузить токен</button><br><br>
+<button id="loadBtn">Загрузить токен</button>
+<br><br>
 <button id="readyBtn">Готово</button>
 <div id="ready"></div>
 
@@ -35,110 +75,120 @@ button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-we
   <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
   <img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/833/833314.png" style="display:none;">
   <img id="gold" class="gold" src="https://cdn-icons-png.flaticon.com/512/833/833310.png" style="display:none;">
+  
+  <div id="leaderboard">
+    <h3>🏆 Лидерборд</h3>
+    <ol id="topPlayers"></ol>
+  </div>
 </div>
-
-<h2>🏆 Лидерборд</h2>
-<button id="updateLeaderboard">Обновить рейтинг</button>
-<div id="leaderboard"><p>Топ-5 игроков появится здесь</p></div>
 
 <script>
 const server="https://tap-coin-server.onrender.com";
-let token=null;
+let token = localStorage.getItem("token");
 
-const tokenText=document.getElementById("token");
-const coins=document.getElementById("coins");
-const coin=document.querySelector(".coin");
-const chest=document.getElementById("chest");
-const gold=document.getElementById("gold");
-const game=document.getElementById("game");
-const ready=document.getElementById("ready");
-const leaderboardDiv=document.getElementById("leaderboard");
+const tokenText = document.getElementById("token");
+const coins = document.getElementById("coins");
+const coin = document.querySelector(".coin");
+const chest = document.getElementById("chest");
+const gold = document.getElementById("gold");
+const game = document.getElementById("game");
+const ready = document.getElementById("ready");
+const topPlayers = document.getElementById("topPlayers");
+
+if(token) tokenText.innerText = token;
 
 // Получить токен
-document.getElementById("getToken").onclick=async()=>{
-  const newToken=Math.random().toString(36).substring(2,10);
-  const res=await fetch(server+"/register",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token:newToken})});
-  const data=await res.json();
-  token=data.token;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  coins.innerText=data.coins;
+document.getElementById("getToken").onclick = async () => {
+    const newToken = Math.random().toString(36).substring(2,10);
+    const res = await fetch(server+"/register", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({token:newToken})
+    });
+    const data = await res.json();
+    token = data.token;
+    localStorage.setItem("token", token);
+    tokenText.innerText = token;
+    coins.innerText = data.coins;
 }
 
 // Загрузить токен
-document.getElementById("loadBtn").onclick=async()=>{
-  const t=document.getElementById("loadToken").value.trim();
-  if(!t)return alert("Введите токен");
-  token=t;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  const res=await fetch(server+"/coins?token="+token);
-  const data=await res.json();
-  coins.innerText=data.coins;
+document.getElementById("loadBtn").onclick = async () => {
+    const t = document.getElementById("loadToken").value.trim();
+    if(!t) return alert("Введите токен!");
+    token = t;
+    localStorage.setItem("token", token);
+    tokenText.innerText = token;
+
+    const res = await fetch(`${server}/coins?token=${token}`);
+    const data = await res.json();
+    coins.innerText = data.coins;
 }
 
-// Кнопка готово
-document.getElementById("readyBtn").onclick=()=>{
-  if(!token || token===""){ alert("Сначала получите или загрузите токен!"); return; }
-  ready.innerText="Готово ✅";
-  game.style.display="block";
+// Кнопка Готово
+document.getElementById("readyBtn").onclick = () => {
+    if(!token || token==="") {
+        alert("Сначала получите или загрузите токен!");
+        return;
+    }
+    ready.innerText = "Готово ✅";
+    game.style.display = "block";
+    loadLeaderboard();
 }
 
 // Добавление монет
 async function addCoins(amount){
-  if(!token)return;
-  const res=await fetch(server+"/add",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({token,amount})});
-  const data=await res.json();
-  coins.innerText=data.coins;
-  updateLeaderboard(); // обновляем рейтинг при каждом добавлении монет
+    if(!token) return;
+    const res = await fetch(`${server}/add`,{
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({token, amount})
+    });
+    const data = await res.json();
+    coins.innerText = data.coins;
+    loadLeaderboard();
 }
 
-// Появление сундуков
+// Случайное появление сундуков
 function maybeChest(){
-  if(Math.random()<0.05 && chest.style.display==='none') chest.style.display="block";
-  if(Math.random()<0.01 && gold.style.display==='none') gold.style.display="block";
+    if(Math.random()<0.05) chest.style.display="block";
+    if(Math.random()<0.01) gold.style.display="block";
 }
 
-// Клик по монете
-coin.onclick=async()=>{
-  await addCoins(1);
-  maybeChest();
+coin.onclick = async () => {
+    await addCoins(1);
+    maybeChest();
 }
 
-// Клик по обычному сундуку
-chest.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*231)+20;
-  await addCoins(bonus);
-  alert("🎉 Вы получили "+bonus+" монет");
-  chest.style.display="none";
+chest.onclick = async () => {
+    const bonus = Math.floor(Math.random()*231)+20;
+    await addCoins(bonus);
+    alert("🎉 Вы получили "+bonus+" монет");
+    chest.style.display="none";
 }
 
-// Клик по золотому сундуку
-gold.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*501)+500;
-  await addCoins(bonus);
-  alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
-  gold.style.display="none";
+gold.onclick = async () => {
+    const bonus = Math.floor(Math.random()*501)+500;
+    await addCoins(bonus);
+    alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
+    gold.style.display="none";
 }
 
-// Обновление лидерборда
-async function updateLeaderboard(){
-  try{
-    const res=await fetch(server+"/top");
-    const data=await res.json();
-    if(!data || data.length===0){ leaderboardDiv.innerHTML="<p>Нет игроков</p>"; return; }
-    let html="<ol>";
-    data.forEach(p=>{ html+=`<li>${p.token}: ${p.coins} монет</li>`; });
-    html+="</ol>";
-    leaderboardDiv.innerHTML=html;
-  }catch(e){
-    console.error("Не удалось загрузить рейтинг",e);
-    leaderboardDiv.innerHTML="<p>Ошибка загрузки</p>";
-  }
+// Загрузка топ игроков
+async function loadLeaderboard(){
+    try {
+        const res = await fetch(`${server}/top`);
+        const data = await res.json();
+        topPlayers.innerHTML = "";
+        data.forEach(player => {
+            const li = document.createElement("li");
+            li.innerText = `${player.token} — ${player.coins} монет`;
+            topPlayers.appendChild(li);
+        });
+    } catch(e){
+        console.error("Не удалось загрузить лидерборд", e);
+    }
 }
-
-document.getElementById("updateLeaderboard").onclick=updateLeaderboard;
-setInterval(updateLeaderboard,30000); // автообновление каждые 30 секунд
 </script>
 
 </body>
