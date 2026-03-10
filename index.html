@@ -55,7 +55,7 @@ button{background:#f0a500;color:black;}
 <img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/833/833310.png" style="display:none;">
 
 <script>
-const serverUrl = "https://tap-coin-server.onrender.com";
+const serverUrl = "https://tap-coin-server.onrender.com"; // вставь свой сервер
 let token = localStorage.getItem('token');
 const display = document.getElementById('coins');
 const coin = document.querySelector('.coin');
@@ -63,7 +63,7 @@ const chest = document.getElementById('chest');
 const goldChest = document.getElementById('goldChest');
 const tokenDisplay = document.getElementById('tokenDisplay');
 
-// Регистрация или получение нового токена
+// Функция регистрации / получения нового токена
 async function register(newToken){
     const res = await fetch(`${serverUrl}/register`,{
         method:"POST",
@@ -77,21 +77,20 @@ async function register(newToken){
     display.innerText = data.coins;
 }
 
-// Изначально регистрируем токен
+// Изначально регистрируем токен, если нет
 if(!token) register();
 else tokenDisplay.innerText = token;
 
-// Получить новый токен кнопкой
+// Кнопка “Получить токен”
 document.getElementById('getToken').onclick = () => register();
 
-// Загрузить свой токен
+// Кнопка загрузки своего токена
 document.getElementById('loadBtn').onclick = async () => {
     const t = document.getElementById('loadToken').value.trim();
     if(!t) return alert("Введите токен");
     token = t;
     localStorage.setItem('token', token);
     tokenDisplay.innerText = token;
-    // Загрузим количество монет
     const res = await fetch(`${serverUrl}/coins?token=${token}`);
     const data = await res.json();
     display.innerText = data.coins;
@@ -99,6 +98,7 @@ document.getElementById('loadBtn').onclick = async () => {
 
 // Добавление монет
 async function addCoins(amount){
+    if(!token) return alert("Сначала получите токен!");
     const res = await fetch(`${serverUrl}/add`,{
         method:"POST",
         headers:{"Content-Type":"application/json"},
@@ -108,7 +108,7 @@ async function addCoins(amount){
     display.innerText = data.coins;
 }
 
-// Рандомное появление сундуков
+// Появление сундуков
 function maybeShowChest(){
     if(Math.random() < 0.05 && chest.style.display==='none'){
         chest.style.display='block';
