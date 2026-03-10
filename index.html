@@ -1,60 +1,83 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-<meta charset="UTF-8">
-<title>Tap Coin</title>
 <meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tap Coin</title>
+
 <style>
-body { background:#1b1b2f; color:white; font-family:Arial; text-align:center; margin-top:40px; }
-#coins { font-size:35px; margin:20px; }
-.coin { width:180px; cursor:pointer; transition:0.15s; }
-.coin:active { transform:scale(1.2); }
-button { font-size:20px; padding:10px 20px; margin:5px; cursor:pointer; }
+body{
+background:#1b1b2f;
+color:white;
+font-family:Arial;
+text-align:center;
+margin-top:40px;
+}
+
+#coins{
+font-size:35px;
+margin:20px;
+}
+
+.coin{
+width:180px;
+cursor:pointer;
+transition:0.15s;
+}
+
+.coin:active{
+transform:scale(1.2);
+}
 </style>
 </head>
+
 <body>
 
 <h1>🪙 Tap Coin</h1>
-<div>Coins: <span id="coins">0</span>🪙</div>
-<img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png" id="tapButton">
 
-<h2>Shop</h2>
-<button onclick="buy(2,10)">x2 Coins (10🪙)</button>
-<button onclick="buy(10,30)">x10 Coins (30🪙)</button>
+<div id="coins">0</div>
+
+<img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
 
-    // Инициализация
-    let coins = 0;
-    const display = document.getElementById('coins');
+const serverUrl = "https://bot-game-1-686w.onrender.com";
 
-    function updateDisplay() {
-        display.textContent = coins;
-    }
+let userId = localStorage.getItem("userId");
 
-    // Клик на монету
-    const button = document.getElementById('tapButton');
-    button.addEventListener("click", () => {
-        coins += 1;
-        updateDisplay();
-    });
+if(!userId){
+userId = Math.random().toString(36).substring(2);
+localStorage.setItem("userId", userId);
+}
 
-    // Магазин
-    window.buy = (multiplier, cost) => {
-        if(coins >= cost){
-            coins -= cost;
-            coins += multiplier;
-            updateDisplay();
-        } else {
-            alert("Not enough coins!");
-        }
-    };
+const display = document.getElementById("coins");
+const coin = document.querySelector(".coin");
 
-    // Сразу обновляем экран
-    updateDisplay();
+async function loadCoins(){
+const res = await fetch(serverUrl + "/coins?userId=" + userId);
+const data = await res.json();
+display.innerText = data.coins;
+}
 
+async function tap(){
+const res = await fetch(serverUrl + "/add",{
+method:"POST",
+headers:{
+"Content-Type":"application/json"
+},
+body:JSON.stringify({
+userId:userId,
+amount:1
+})
 });
+
+const data = await res.json();
+display.innerText = data.coins;
+}
+
+coin.onclick = tap;
+
+loadCoins();
+
 </script>
 
 </body>
