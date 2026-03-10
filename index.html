@@ -1,133 +1,78 @@
-<!DOCTYPE html>
-<html>
-<head>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tap Coin + Lucky Chest</title>
-<style>
-body{
-  background:#1b1b2f;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-  margin-top:20px;
+// server.js
+const express = require('express');
+const fetch = require('node-fetch');
+const fs = require('fs');
+
+const app = express();
+app.use(express.json());
+
+let db = {};
+try { db = JSON.parse(fs.readFileSync('db.json', 'utf-8')); } 
+catch(e){ db = {}; }
+
+function saveDB(){ fs.writeFileSync('db.json', JSON.stringify(db, null, 2)); }
+
+function updatePlayer(id, coinsToAdd = 0){
+  if(!db[id]) db[id] = { coins: 0 };
+  db[id].coins += coinsToAdd;
+  saveDB();
+  return db[id].coins;
 }
-#coins{font-size:35px;margin:20px;}
-input{padding:6px;border-radius:5px;border:none;}
-button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-weight:bold;cursor:pointer;margin:5px;}
-.coin, .chest, .gold{width:170px; cursor:pointer; margin-top:20px; transition:0.2s;}
-#game{display:none;}
-#ready{font-size:22px;color:#00ff00;margin:10px;}
-</style>
-</head>
-<body>
 
-<h1>🪙 Tap Coin + Lucky Chest</h1>
+function getLeaderboard(top=5){
+  const sorted = Object.entries(db).sort((a,b) => b[1].coins - a[1].coins);
+  return sorted.slice(0, top)
+               .map(([id, data], i) => `${i+1}. ${id}: ${data.coins}💰`)
+               .join('\n');
+}
 
-<p>Ваш токен: <span id="token">нет</span></p>
-<button id="getToken">Получить токен</button>
-<br><br>
-<input id="loadToken" placeholder="Вставьте токен">
-<button id="loadBtn">Загрузить токен</button>
-<br><br>
-<button id="readyBtn">Готово</button>
-<div id="ready"></div>
-
-<div id="game">
-  <div id="coins">0</div>
-  <!-- Старая монета -->
-  <img id="coin" src="images/coin.png" class="coin">
-
-  <!-- Сундуки через эмодзи -->
-  <div id="chest" class="chest" style="display:none;font-size:70px;cursor:pointer;">🟫</div>
-  <div id="gold" class="gold" style="display:none;font-size:70px;cursor:pointer;">🟨</div>
-</div>
-
-<script>
-const server="https://tap-coin-server.onrender.com";
-let token=null;
-
-const tokenText=document.getElementById("token");
-const coinsDisplay=document.getElementById("coins");
-const coin=document.getElementById("coin");
-const chest=document.getElementById("chest");
-const gold=document.getElementById("gold");
-const game=document.getElementById("game");
-const ready=document.getElementById("ready");
-
-// Получить токен
-document.getElementById("getToken").onclick=async()=>{
-  const newToken=Math.random().toString(36).substring(2,10);
-  const res=await fetch(server+"/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token:newToken})
+async function sendMessage(chatId, text){
+  await fetch(`https://api.telegram.org/bot<YOUR_BOT_TOKEN>/sendMessage`, {
+    method: 'POST',
+    headers: {'Content-Type': 'application/json'},
+    body: JSON.stringify({ chat_id: chatId, text })
   });
-  const data=await res.json();
-  token=data.token;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  coinsDisplay.innerText=data.coins;
 }
 
-// Загрузить токен
-document.getElementById("loadBtn").onclick=async()=>{
-  const t=document.getElementById("loadToken").value.trim();
-  if(!t){ alert("Введите токен"); return; }
-  token=t;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  const res=await fetch(server+"/coins?token="+token);
-  const data=await res.json();
-  coinsDisplay.innerText=data.coins;
-}
+app.post('/webhook', async (req, res) => {
+  const msg = req.body.message;
+  if(!msg) return res.sendStatus(200);
 
-// Кнопка Готово
-document.getElementById("readyBtn").onclick=()=>{
-  if(!token){ alert("Сначала получите или загрузите токен!"); return; }
-  ready.innerText="Готово ✅";
-  game.style.display="block";
-}
+  const chatId = msg.chat.id;
+  const text = msg.text;
 
-// Добавление монет
-async function addCoins(amount){
-  if(!token) return;
-  const res=await fetch(server+"/add",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token,amount})
-  });
-  const data=await res.json();
-  coinsDisplay.innerText=data.coins;
-}
+  if(text === "/coin"){
+    const coins = updatePlayer(chatId, 1);
+    await sendMessage(chatId, `💰 Вы получили 1 монету!\nВсего: ${coins}💰`);
 
-// Случайное появление сундука
-function maybeChest(){
-  if(Math.random()<0.05) chest.style.display="block";
-  if(Math.random()<0.01) gold.style.display="block";
-}
+    // шанс появления сундука
+    const rnd = Math.random();
+    if(rnd < 0.05){ // обычный сундук
+      for(let i=0; i<3; i++){
+        await new Promise(r => setTimeout(r, 300));
+        await sendMessage(chatId, "🟫"); // подпрыгивание
+      }
+      const bonus = Math.floor(Math.random() * 231) + 20;
+      const total = updatePlayer(chatId, bonus);
+      await sendMessage(chatId, `🎉 Вы открыли обычный сундук и получили ${bonus}💰!\nВсего: ${total}💰`);
+    } else if(rnd < 0.01){ // золотой сундук
+      for(let i=0; i<3; i++){
+        await new Promise(r => setTimeout(r, 300));
+        await sendMessage(chatId, "🟨"); // подпрыгивание
+      }
+      const bonus = Math.floor(Math.random() * 501) + 500;
+      const total = updatePlayer(chatId, bonus);
+      await sendMessage(chatId, `🌟 ЗОЛОТОЙ сундук! Вы получили ${bonus}💰!\nВсего: ${total}💰`);
+    }
 
-// Клик по монете
-coin.onclick=async()=>{
-  await addCoins(1);
-  maybeChest();
-}
+  } else if(text === "/leaderboard"){
+    const board = getLeaderboard();
+    await sendMessage(chatId, board ? "🏆 Лидерборд:\n" + board : "Пока нет игроков");
+  } else {
+    await sendMessage(chatId, "Выберите действие:\n/coin - монета\n/leaderboard - лидерборд");
+  }
 
-// Клик по обычному сундуку
-chest.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*231)+20;
-  await addCoins(bonus);
-  alert("🎉 Вы открыли обычный сундук и получили "+bonus+" монет!");
-  chest.style.display="none";
-}
+  res.sendStatus(200);
+});
 
-// Клик по золотому сундуку
-gold.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*501)+500;
-  await addCoins(bonus);
-  alert("🌟 ЗОЛОТОЙ сундук! Вы получили "+bonus+" монет!");
-  gold.style.display="none";
-}
-</script>
-
-</body>
-</html>
+app.listen(process.env.PORT || 3000, () => console.log("Server running"));
