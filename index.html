@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tap Coin + Lucky Chest</title>
+<title>Tap Coin + Lucky Chest TEST</title>
 
 <style>
 body{
@@ -23,7 +23,6 @@ width:180px;
 cursor:pointer;
 transition:0.2s;
 margin-top:30px;
-display:none;
 }
 
 /* Анимация прыжка монеты */
@@ -59,10 +58,10 @@ display:none;
 <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
 
 <!-- Обычный сундук -->
-<img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/1046/1046750.png">
+<img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/1046/1046750.png" style="display:block;">
 
 <!-- Золотой редкий сундук -->
-<img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/1046/1046761.png">
+<img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/1046/1046761.png" style="display:block;">
 
 <script>
 const serverUrl = "https://bot-game-1-686w.onrender.com";
@@ -113,23 +112,6 @@ coin.onclick = async () => {
     await addCoins(1);
     coin.classList.add("jump");
     setTimeout(()=> coin.classList.remove("jump"), 300);
-    maybeShowChest();
-}
-
-// Появление сундука
-function maybeShowChest(){
-    // Обычный сундук 2%
-    if(Math.random() < 0.02){
-        chest.style.display = "block";
-        chest.classList.add("jump");
-        setTimeout(()=> chest.classList.remove("jump"), 500);
-    }
-    // Редкий золотой сундук 0.5%
-    if(Math.random() < 0.005){
-        goldChest.style.display = "block";
-        goldChest.classList.add("jump");
-        setTimeout(()=> goldChest.classList.remove("jump"), 500);
-    }
 }
 
 // Клик по обычному сундуку
@@ -137,7 +119,6 @@ chest.onclick = async () => {
     const bonus = Math.floor(Math.random()*231) + 20; // 20-250 монет
     await addCoins(bonus);
     alert(`🎉 Поздравляем! Вы получили ${bonus} монет!`);
-    chest.style.display = "none";
 }
 
 // Клик по золотому сундуку
@@ -145,7 +126,6 @@ goldChest.onclick = async () => {
     const bonus = Math.floor(Math.random()*501) + 500; // 500-1000 монет
     await addCoins(bonus);
     alert(`🌟 Вау! Вы нашли ЗОЛОТОЙ сундук и получили ${bonus} монет!`);
-    goldChest.style.display = "none";
 }
 
 loadCoins();
