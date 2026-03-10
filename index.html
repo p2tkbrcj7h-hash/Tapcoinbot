@@ -12,15 +12,28 @@ body{
   margin-top:20px;
 }
 #coins{font-size:35px;margin:20px;}
-input{padding:6px;border-radius:5px;border:none;}
-button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-weight:bold;cursor:pointer;margin:5px;}
+input{
+  padding:6px;
+  border-radius:5px;
+  border:none;
+}
+button{
+  padding:6px 10px;
+  border-radius:5px;
+  border:none;
+  background:#f0a500;
+  font-weight:bold;
+  cursor:pointer;
+  margin:5px;
+}
 #game{display:none;}
 #ready{font-size:22px;color:#00ff00;margin:10px;}
-.coin, .chest, .gold{
-  width:170px;
-  cursor:pointer;
+#chestEmoji, #goldEmoji{
+  font-size:60px;
+  display:none;
   margin-top:20px;
-  transition:0.2s;
+  cursor:pointer;
+  transition: transform 0.3s;
 }
 </style>
 </head>
@@ -39,9 +52,9 @@ button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-we
 
 <div id="game">
   <div id="coins">0</div>
-  <img id="coin" class="coin" src="./images/coin.png">
-  <img id="chest" class="chest" src="./images/chest.png" style="display:none;">
-  <img id="gold" class="gold" src="./images/gold.png" style="display:none;">
+  <button id="coinBtn" style="font-size:60px;">🪙</button>
+  <div id="chestEmoji">🟫</div>
+  <div id="goldEmoji">🟨</div>
 </div>
 
 <script>
@@ -50,84 +63,92 @@ let token=null;
 
 const tokenText=document.getElementById("token");
 const coins=document.getElementById("coins");
-const coinImg=document.getElementById("coin");
-const chestImg=document.getElementById("chest");
-const goldImg=document.getElementById("gold");
+const coinBtn=document.getElementById("coinBtn");
+const chestEmoji=document.getElementById("chestEmoji");
+const goldEmoji=document.getElementById("goldEmoji");
 const game=document.getElementById("game");
 const ready=document.getElementById("ready");
 
 // Получить токен
-document.getElementById("getToken").onclick = async () => {
-  const newToken = Math.random().toString(36).substring(2,10);
-  const res = await fetch(server+"/register",{
+document.getElementById("getToken").onclick=async()=>{
+  const newToken=Math.random().toString(36).substring(2,10);
+  const res=await fetch(server+"/register",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
     body:JSON.stringify({token:newToken})
   });
-  const data = await res.json();
-  token = data.token;
-  localStorage.setItem("token", token);
-  tokenText.innerText = token;
-  coins.innerText = data.coins;
+  const data=await res.json();
+  token=data.token;
+  localStorage.setItem("token",token);
+  tokenText.innerText=token;
+  coins.innerText=data.coins;
 }
 
 // Загрузить токен
-document.getElementById("loadBtn").onclick = async () => {
-  const t = document.getElementById("loadToken").value.trim();
+document.getElementById("loadBtn").onclick=async()=>{
+  const t=document.getElementById("loadToken").value.trim();
   if(!t) return alert("Введите токен");
-  token = t;
-  localStorage.setItem("token", token);
-  tokenText.innerText = token;
-  const res = await fetch(server+"/coins?token="+token);
-  const data = await res.json();
-  coins.innerText = data.coins;
+  token=t;
+  localStorage.setItem("token",token);
+  tokenText.innerText=token;
+  const res=await fetch(server+"/coins?token="+token);
+  const data=await res.json();
+  coins.innerText=data.coins;
 }
 
 // Кнопка Готово
-document.getElementById("readyBtn").onclick = () => {
-  if(!token){ alert("Сначала получите или загрузите токен!"); return; }
-  ready.innerText = "Готово ✅";
-  game.style.display = "block";
+document.getElementById("readyBtn").onclick=()=>{
+  if(!token){ alert("Сначала получите или загрузите токен!"); return;}
+  ready.innerText="Готово ✅";
+  game.style.display="block";
 }
 
 // Добавление монет
 async function addCoins(amount){
   if(!token) return;
-  const res = await fetch(server+"/add",{
+  const res=await fetch(server+"/add",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
-    body: JSON.stringify({token, amount})
+    body:JSON.stringify({token,amount})
   });
-  const data = await res.json();
-  coins.innerText = data.coins;
+  const data=await res.json();
+  coins.innerText=data.coins;
 }
 
 // Появление сундука
 function maybeChest(){
-  if(Math.random() < 0.05) chestImg.style.display = "block";
-  if(Math.random() < 0.01) goldImg.style.display = "block";
+  if(Math.random()<0.05){
+    chestEmoji.style.display="block";
+    chestEmoji.style.transform="translateY(-30px)";
+    setTimeout(()=>chestEmoji.style.transform="translateY(0)",300);
+  }
+  if(Math.random()<0.01){
+    goldEmoji.style.display="block";
+    goldEmoji.style.transform="translateY(-30px)";
+    setTimeout(()=>goldEmoji.style.transform="translateY(0)",300);
+  }
 }
 
 // Клик по монете
-coinImg.onclick = async () => {
+coinBtn.onclick=async()=>{
   await addCoins(1);
   maybeChest();
 }
 
 // Клик по обычному сундуку
-chestImg.onclick = async () => {
-  const bonus = Math.floor(Math.random()*231)+20;
+chestEmoji.onclick=async()=>{
+  const bonus=Math.floor(Math.random()*231)+20;
   await addCoins(bonus);
-  alert("🎉 Вы открыли обычный сундук и получили "+bonus+"💰!");
-  chestImg.style.display = "none";
+  alert("🎉 Вы открыли обычный сундук и получили "+bonus+" монет");
+  chestEmoji.style.display="none";
 }
 
 // Клик по золотому сундуку
-goldImg.onclick = async () => {
-  const bonus = Math.floor(Math.random()*501)+500;
+goldEmoji.onclick=async()=>{
+  const bonus=Math.floor(Math.random()*501)+500;
   await addCoins(bonus);
-  alert("🌟 ЗОЛОТОЙ сундук! Вы получили "+bonus+"💰!");
-  goldImg.style.display = "none";
+  alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
+  goldEmoji.style.display="none";
 }
 </script>
 </body>
