@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tap Coin + Lucky Chest + Leaderboard</title>
+<title>Tap Coin + Lucky Chest</title>
 <style>
 body{
   background:#1b1b2f;
@@ -11,23 +11,50 @@ body{
   text-align:center;
   margin-top:20px;
 }
+
 #coins{font-size:35px;margin:20px;}
-input{padding:6px;border-radius:5px;border:none;}
-button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-weight:bold;cursor:pointer;margin:5px;}
+
+input{
+  padding:6px;
+  border-radius:5px;
+  border:none;
+}
+
+button{
+  padding:6px 10px;
+  border-radius:5px;
+  border:none;
+  background:#f0a500;
+  font-weight:bold;
+  cursor:pointer;
+  margin:5px;
+}
+
 #game{display:none;}
 #ready{font-size:22px;color:#00ff00;margin:10px;}
-.coin, .chest, .gold{width:170px;cursor:pointer;margin-top:20px;transition:0.2s;}
-#leaderboard{margin-top:20px; text-align:left; max-width:300px; margin-left:auto;margin-right:auto;}
-#leaderboard h2{margin-bottom:5px;}
-@keyframes jump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-30px) scale(1.3);}100%{transform:translateY(0) scale(1);}}
-.coin.jump{animation:jump 0.3s ease;}
-@keyframes chestJump{0%{transform:translateY(0);}50%{transform:translateY(-20px);}100%{transform:translateY(0);}}
-.chest.jump, .gold.jump{animation:chestJump 0.5s ease;}
+
+.coin, .chest, .gold{
+  width:170px;
+  height:170px;
+  cursor:pointer;
+  margin-top:20px;
+  transition: transform 0.2s;
+}
+
+.coin:active{transform:scale(1.2);}
+.chest.jump, .gold.jump{animation:jump 0.5s ease;}
+
+@keyframes jump{
+  0%{transform:translateY(0);}
+  50%{transform:translateY(-20px);}
+  100%{transform:translateY(0);}
+}
 </style>
 </head>
-<body>
 
+<body>
 <h1>🪙 Tap Coin + Lucky Chest</h1>
+
 <p>Ваш токен: <span id="token">нет</span></p>
 <button id="getToken">Получить токен</button>
 <br><br>
@@ -39,14 +66,17 @@ button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-we
 
 <div id="game">
   <div id="coins">0</div>
-  <img class="coin" src="https://i.ibb.co/7rF2wLJ/coin.png">
-  <img id="chest" class="chest" src="https://i.ibb.co/3kHzDRM/chest.png" style="display:none;">
-  <img id="gold" class="gold" src="https://i.ibb.co/2S7P9Fj/gold-chest.png" style="display:none;">
   
-  <div id="leaderboard">
-    <h2>🏆 Лидерборд</h2>
-    <ol id="topPlayers"></ol>
-  </div>
+  <!-- Монета -->
+  <img id="coin" class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
+  
+  <!-- Обычный сундук (Base64) -->
+  <img id="chest" class="chest" 
+       src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAAeFBMVEX///8AAABSUlJISEiqqqq9vb3R0dHb29vX19fi4uKysrLt7e3p6enU1NQZGRnq6uq6urru7u6jo6Obm5t0dHS3t7e5ubmgoKBgYGBJSUkfHx8vLy9BQUE9PT2zs7P8/PxNTU0aGhpwcHBtbW3AwMDHx8fLy8vU1NS9vb3r6+vNzc2xsbG7u7s+Pj7w8PBgYGBPT09ZWVlhYWF6enpHR0e8vLwS7khRAAAG/0lEQVR4nO2d63arIBCGH6I4QQXoqX//+pCzQZCSJqU2buZ+zdpXkBOGzfGvjI2q7XzC4QERERERERERERERERERERERERERERERERES8Y7MPL5b0OY9wew95yPFw7v/yaxXxFfA76dJvyyi9r9nYO0zDeExo18aRGN2TSPn0Fr0JjXfWn52dGT3c39Pz68LvnYz6OTG85z2x9r2dHf0eRpnjVnM9RfM5xkb/5pmZMc6Mdc1H4v/xpyDj3+o+T1U8f9DyP3TZ8a3NmZbn0f8nyq+OvwQhvhMZ6cLvzr0yLy0+4iV1uRbx+PVwrfP4pzTzL6b+Hx+T9F/cPjU+J+vH5x8wqfHy7pTPXq+Jp9t/WcXAfvfJ35Vh3c6uvSx0vj8+xmL3h3zz9aZ6YfXrfrH4GdrU3+xtfh5/qnGfX3nzN3a5s0f+ZPrh5+V4/BblnrcvH5kW2afnzjLfKmnqJfH3ng/R1h+n33Xtrv6Zbq3ZQh5ncTfGJ9cfpN2Zy6n5B/16fP+f0Z7E+4tHe3/uXpP97Y+3kR7E7mr9b4+YfXz13v8i96l7rnyhfPX+74R8er+G+0w+q+vV0f1G/RB3vQv6E/+H1B9qXz93i9L7wf5k+un8nr/0bxfG+fqH9jHxqD+v+2w/Pfxp/Pp3+6vH7+Z4X4fg1+djL+bxvX+i/Vjzf5afH4h+vF/ftVfD1f7+9w+1fK0+93/tj6B58N/0Ff98H9X/4T4tXzv8k+vL6r3+o3/9+8fTz9hX7+eC3a0/kf7zP8l+fT9vzL/9/8/H/3h+fb/j9vzv9v5f8j8H+8j6j+eT7L+uH8f8z8z8f9y+7b+T+v9v8f9f6b+H7f+f9w/x8Pp/1+v6z+V+f9w+xv7z/x9+P6+3p+v5n4f9v7Z/T6/1+7n/37wT5z9fj/Z8r9n9+/3/6v+/T/7P7p8vR/0/+/8e8fT/7/9v5/9z9b9v+v/+P7b+f9H//n//P7z+f0P//n+//+f9//wMvr9C+9/2f//8P6f//P+z//P//3/8v8j+f//P9z/f//P6v//7/8v8P//D///wz9//0//w9//P+P//wP+P//9f/8+//w8v8f+f//D///////w==" style="display:none;">
+  
+  <!-- Золотой сундук (Base64) -->
+  <img id="gold" class="gold" 
+       src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAMgAAADICAMAAACahl6sAAAAeFBMVEX///8AAABSUlJISEiqqqq9vb3R0dHb29vX19fi4uKysrLt7e3p6enU1NQZGRnq6uq6urru7u6jo6Obm5t0dHS3t7e5ubmgoKBgYGBJSUkfHx8vLy9BQUE9PT2zs7P8/PxNTU0aGhpwcHBtbW3AwMDHx8fLy8vU1NS9vb3r6+vNzc2xsbG7u7s+Pj7w8PBgYGBPT09ZWVlhYWF6enpHR0e8vLwS7khRAAAG/0lEQVR4nO2d63aDIBCGH6I4QQXoqX//+pCzQZCSJqU2buZ+zdpXkBOGzfGvjI2q7XzC4QERERERERERERERERERERERERERERERERES8Y7MPL5b0OY9wew95yPFw7v/yaxXxFfA76dJvyyi9r9nYO0zDeExo18aRGN2TSPn0Fr0JjXfWn52dGT3c39Pz68LvnYz6OTG85z2x9r2dHf0eRpnjVnM9RfM5xkb/5pmZMc6Mdc1H4v/xpyDj3+o+T1U8f9DyP3TZ8a3NmZbn0f8nyq+OvwQhvhMZ6cLvzr0yLy0+4iV1uRbx+PVwrfP4pzTzL6b+Hx+T9F/cPjU+J+vH5x8wqfHy7pTPXq+Jp9t/WcXAfvfJ35Vh3c6uvSx0vj8+xmL3h3zz9aZ6YfXrfrH4GdrU3+xtfh5/qnGfX3nzN3a5s0f+ZPrh5+V4/BblnrcvH5kW2afnzjLfKmnqJfH3ng/R1h+n33Xtrv6Zbq3ZQh5ncTfGJ9cfpN2Zy6n5B/16fP+f0Z7E+4tHe3/uXpP97Y+3kR7E7mr9b4+YfXz13v8i96l7rnyhfPX+74R8er+G+0w+q+vV0f1G/RB3vQv6E/+H1B9qXz93i9L7wf5k+un8nr/0bxfG+fqH9jHxqD+v+2w/Pfxp/Pp3+6vH7+Z4X4fg1+djL+bxvX+i/Vjzf5afH4h+vF/ftVfD1f7+9w+1fK0+93/tj6B58N/0Ff98H9X/4T4tXzv8k+vL6r3+o3/9+8fTz9hX7+eC3a0/kf7zP8l+fT9vzL/9/8/H/3h+fb/j9vzv9v5f8j8H+8j6j+eT7L+uH8f8z8z8f9y+7b+T+v9v8f9f6b+H7f+f9w/x8Pp/1+v6z+V+f9w+xv7z/x9+P6+3p+v5n4f9v7Z/T6/1+7n/37wT5z9fj/Z8r9n9+/3/6v+/T/7P7p8vR/0/+/8e8fT/7/9v5/9z9b9v+v/+P7b+f9H//n//P7z+f0P//n+//+f9//wMvr9C+9/2f//8P6f//P+z//P//3/8v8j+f//P9z/f//P6v//7/8v8P//D///wz9//0//w9//P+P//wP+P//9f/8+//w8v8f+f//D///////w==" style="display:none;">
 </div>
 
 <script>
@@ -55,12 +85,11 @@ let token=null;
 
 const tokenText=document.getElementById("token");
 const coins=document.getElementById("coins");
-const coin=document.querySelector(".coin");
+const coin=document.getElementById("coin");
 const chest=document.getElementById("chest");
 const gold=document.getElementById("gold");
 const game=document.getElementById("game");
 const ready=document.getElementById("ready");
-const topPlayers=document.getElementById("topPlayers");
 
 // Получить токен
 document.getElementById("getToken").onclick=async()=>{
@@ -75,20 +104,18 @@ document.getElementById("getToken").onclick=async()=>{
   localStorage.setItem("token",token);
   tokenText.innerText=token;
   coins.innerText=data.coins;
-  updateLeaderboard();
 }
 
 // Загрузить токен
 document.getElementById("loadBtn").onclick=async()=>{
   const t=document.getElementById("loadToken").value.trim();
-  if(!t) return alert("Введите токен");
+  if(!t){ alert("Введите токен"); return;}
   token=t;
   localStorage.setItem("token",token);
   tokenText.innerText=token;
   const res=await fetch(server+"/coins?token="+token);
   const data=await res.json();
   coins.innerText=data.coins;
-  updateLeaderboard();
 }
 
 // Кнопка Готово
@@ -108,28 +135,17 @@ async function addCoins(amount){
   });
   const data=await res.json();
   coins.innerText=data.coins;
-  updateLeaderboard();
 }
 
-// Случайное появление сундука
+// Появление сундука
 function maybeChest(){
-  if(Math.random()<0.05 && chest.style.display==='none'){
-    chest.style.display='block';
-    chest.classList.add("jump");
-    setTimeout(()=>chest.classList.remove("jump"),500);
-  }
-  if(Math.random()<0.01 && gold.style.display==='none'){
-    gold.style.display='block';
-    gold.classList.add("jump");
-    setTimeout(()=>gold.classList.remove("jump"),500);
-  }
+  if(Math.random()<0.05){ chest.style.display="block"; chest.classList.add("jump"); setTimeout(()=>chest.classList.remove("jump"),500);}
+  if(Math.random()<0.01){ gold.style.display="block"; gold.classList.add("jump"); setTimeout(()=>gold.classList.remove("jump"),500);}
 }
 
 // Клик по монете
 coin.onclick=async()=>{
   await addCoins(1);
-  coin.classList.add("jump");
-  setTimeout(()=>coin.classList.remove("jump"),300);
   maybeChest();
 }
 
@@ -138,7 +154,7 @@ chest.onclick=async()=>{
   const bonus=Math.floor(Math.random()*231)+20;
   await addCoins(bonus);
   alert("🎉 Вы получили "+bonus+" монет");
-  chest.style.display='none';
+  chest.style.display="none";
 }
 
 // Клик по золотому сундуку
@@ -146,28 +162,8 @@ gold.onclick=async()=>{
   const bonus=Math.floor(Math.random()*501)+500;
   await addCoins(bonus);
   alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
-  gold.style.display='none';
+  gold.style.display="none";
 }
-
-// Получаем топ-5 игроков
-async function updateLeaderboard(){
-  try{
-    const res=await fetch(server+"/leaderboard");
-    const data=await res.json();
-    topPlayers.innerHTML="";
-    data.slice(0,5).forEach(user=>{
-      const li=document.createElement("li");
-      li.innerText=`${user.token} - ${user.coins} 💰`;
-      topPlayers.appendChild(li);
-    });
-  }catch(e){
-    console.error("Ошибка лидерборда:",e);
-  }
-}
-
-// Обновление каждые 5 секунд
-setInterval(updateLeaderboard,5000);
-
 </script>
 </body>
 </html>
