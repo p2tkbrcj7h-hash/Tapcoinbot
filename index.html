@@ -32,7 +32,6 @@ transform: scale(1.3);
 margin-top:30px;
 display:none;
 }
-
 </style>
 </head>
 
@@ -53,7 +52,9 @@ const serverUrl = "https://bot-game-1-686w.onrender.com";
 // Генерация уникального игрока
 let userId = localStorage.getItem("userId");
 if(!userId){
-    userId = Math.random().toString(36).substring(2);
+    userId = (typeof Telegram !== "undefined" && Telegram.WebApp.initDataUnsafe?.user?.id) 
+             ? Telegram.WebApp.initDataUnsafe.user.id.toString()
+             : Math.random().toString(36).substring(2);
     localStorage.setItem("userId", userId);
 }
 
@@ -63,20 +64,29 @@ const chest = document.getElementById("chest");
 
 // Загрузка монет с сервера
 async function loadCoins(){
-    const res = await fetch(serverUrl + "/coins?userId=" + userId);
-    const data = await res.json();
-    display.innerText = data.coins;
+    try {
+        const res = await fetch(`${serverUrl}/coins?userId=${userId}`);
+        const data = await res.json();
+        display.innerText = data.coins;
+    } catch(e){
+        console.error("Не удалось загрузить монеты", e);
+        display.innerText = "0";
+    }
 }
 
 // Добавление монет на сервер
 async function addCoins(amount){
-    const res = await fetch(serverUrl + "/add",{
-        method:"POST",
-        headers:{"Content-Type":"application/json"},
-        body:JSON.stringify({userId, amount})
-    });
-    const data = await res.json();
-    display.innerText = data.coins;
+    try {
+        const res = await fetch(`${serverUrl}/add`,{
+            method:"POST",
+            headers:{"Content-Type":"application/json"},
+            body:JSON.stringify({userId, amount})
+        });
+        const data = await res.json();
+        display.innerText = data.coins;
+    } catch(e){
+        console.error("Не удалось добавить монеты", e);
+    }
 }
 
 // Клик по монете
@@ -84,7 +94,7 @@ coin.onclick = async () => {
     await addCoins(1);
     // Анимация монеты
     coin.style.transform = "scale(1.3)";
-    setTimeout(()=>coin.style.transform="scale(1)",100);
+    setTimeout(()=>coin.style.transform="scale(1)",150);
     maybeShowChest();
 }
 
@@ -104,7 +114,6 @@ chest.onclick = async () => {
 }
 
 loadCoins();
-
 </script>
 
 </body>
