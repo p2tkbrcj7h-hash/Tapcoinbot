@@ -18,15 +18,12 @@ font-size:35px;
 margin:20px;
 }
 
-.coin, .chest{
+.coin, .chest, .gold-chest{
 width:180px;
 cursor:pointer;
 transition:0.2s;
-}
-
-#chest{
 margin-top:30px;
-display:none; /* сундук появляется случайно */
+display:none;
 }
 
 /* Анимация прыжка монеты */
@@ -39,6 +36,17 @@ display:none; /* сундук появляется случайно */
 .coin.jump {
   animation: jump 0.3s ease;
 }
+
+/* Анимация сундука */
+@keyframes chestJump {
+  0% { transform: translateY(0) scale(1); }
+  50% { transform: translateY(-20px) scale(1.1); }
+  100% { transform: translateY(0) scale(1); }
+}
+
+.chest.jump, .gold-chest.jump {
+  animation: chestJump 0.5s ease;
+}
 </style>
 </head>
 
@@ -50,8 +58,11 @@ display:none; /* сундук появляется случайно */
 
 <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
 
-<!-- Сундук -->
+<!-- Обычный сундук -->
 <img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/1046/1046750.png">
+
+<!-- Золотой редкий сундук -->
+<img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/1046/1046761.png">
 
 <script>
 const serverUrl = "https://bot-game-1-686w.onrender.com";
@@ -68,6 +79,7 @@ if(!userId){
 const display = document.getElementById("coins");
 const coin = document.querySelector(".coin");
 const chest = document.getElementById("chest");
+const goldChest = document.getElementById("goldChest");
 
 // Загрузка монет с сервера
 async function loadCoins(){
@@ -104,19 +116,36 @@ coin.onclick = async () => {
     maybeShowChest();
 }
 
-// Рандомное появление сундука
+// Появление сундука
 function maybeShowChest(){
-    if(Math.random() < 0.05){ // 5% шанс
+    // Обычный сундук 2%
+    if(Math.random() < 0.02){
         chest.style.display = "block";
+        chest.classList.add("jump");
+        setTimeout(()=> chest.classList.remove("jump"), 500);
+    }
+    // Редкий золотой сундук 0.5%
+    if(Math.random() < 0.005){
+        goldChest.style.display = "block";
+        goldChest.classList.add("jump");
+        setTimeout(()=> goldChest.classList.remove("jump"), 500);
     }
 }
 
-// Клик по сундуку
+// Клик по обычному сундуку
 chest.onclick = async () => {
-    const bonus = Math.floor(Math.random()*10)+1; // 1-10 монет
+    const bonus = Math.floor(Math.random()*231) + 20; // 20-250 монет
     await addCoins(bonus);
-    alert(`Вы получили ${bonus} монет из сундука!`);
+    alert(`🎉 Поздравляем! Вы получили ${bonus} монет!`);
     chest.style.display = "none";
+}
+
+// Клик по золотому сундуку
+goldChest.onclick = async () => {
+    const bonus = Math.floor(Math.random()*501) + 500; // 500-1000 монет
+    await addCoins(bonus);
+    alert(`🌟 Вау! Вы нашли ЗОЛОТОЙ сундук и получили ${bonus} монет!`);
+    goldChest.style.display = "none";
 }
 
 loadCoins();
