@@ -4,86 +4,51 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tap Coin + Lucky Chest</title>
 <style>
-body {
-    background:#1b1b2f;
-    color:white;
-    font-family:Arial, sans-serif;
-    text-align:center;
-    margin-top:20px;
-}
-#coins { font-size:35px; margin:20px; }
-input { margin:5px; padding:5px; border-radius:5px; border:none; }
-button { padding:5px 10px; border-radius:5px; border:none; cursor:pointer; background:#f0a500; color:black; font-weight:bold; margin:5px; }
-.coin, .chest, .gold-chest { width:180px; cursor:pointer; transition:0.2s; margin-top:20px; display:block; }
-/* Анимация прыжка монеты */
-@keyframes jump {0% {transform:translateY(0) scale(1);}50% {transform:translateY(-30px) scale(1.3);}100% {transform:translateY(0) scale(1);}}
-.coin.jump {animation: jump 0.3s ease;}
-/* Анимация сундука */
+body{background:#1b1b2f;color:white;font-family:Arial;text-align:center;margin-top:20px;}
+#coins{font-size:35px;margin:20px;}
+.coin, .chest, .gold-chest{width:180px;cursor:pointer;transition:0.2s;margin-top:20px;display:block;}
+@keyframes jump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-30px) scale(1.3);}100%{transform:translateY(0) scale(1);}}
+.coin.jump{animation:jump 0.3s ease;}
 @keyframes chestJump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-20px) scale(1.1);}100%{transform:translateY(0) scale(1);}}
-.chest.jump,.gold-chest.jump{animation: chestJump 0.5s ease;}
+.chest.jump,.gold-chest.jump{animation:chestJump 0.5s ease;}
 </style>
 </head>
 <body>
 
 <h1>🪙 Tap Coin + Lucky Chest</h1>
-
-<!-- Форма регистрации/входа -->
-<input id="login" placeholder="Логин">
-<input id="password" placeholder="Пароль" type="password">
-<button id="registerBtn">Зарегистрироваться</button>
-<button id="loginBtn">Войти</button>
-
 <div id="coins">0</div>
-
 <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
 <img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/833/833314.png" style="display:none;">
 <img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/833/833310.png" style="display:none;">
 
 <script>
 const serverUrl = "https://tap-coin-server.onrender.com";
-let login = '';
-const coin = document.querySelector('.coin');
+let token = localStorage.getItem('token'); // получаем токен из браузера
 const display = document.getElementById('coins');
+const coin = document.querySelector('.coin');
 const chest = document.getElementById('chest');
 const goldChest = document.getElementById('goldChest');
 
-// Регистрация
-document.getElementById('registerBtn').onclick = async () => {
-    login = document.getElementById('login').value;
-    const password = document.getElementById('password').value;
-    if(!login || !password) return alert("Введите логин и пароль");
+// Регистрируем/создаём токен
+async function register() {
     const res = await fetch(`${serverUrl}/register`, {
         method:"POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({login, password})
+        body: JSON.stringify({ token })
     });
     const data = await res.json();
-    if(data.error) alert(data.error); // показывает "логин уже занят"
-    else { alert("Аккаунт создан!"); display.innerText = data.coins; }
-};
-
-// Вход
-document.getElementById('loginBtn').onclick = async () => {
-    login = document.getElementById('login').value;
-    const password = document.getElementById('password').value;
-    if(!login || !password) return alert("Введите логин и пароль");
-    const res = await fetch(`${serverUrl}/login`, {
-        method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({login, password})
-    });
-    const data = await res.json();
-    if(data.error) alert(data.error);
-    else { alert("Вход выполнен!"); display.innerText = data.coins; }
-};
+    token = data.token;
+    localStorage.setItem('token', token);
+    display.innerText = data.coins;
+}
+register();
 
 // Добавление монет
 async function addCoins(amount){
-    if(!login) return alert("Сначала войдите!");
     const res = await fetch(`${serverUrl}/add`, {
         method:"POST",
         headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({login, amount})
+        body: JSON.stringify({ token, amount })
     });
     const data = await res.json();
     display.innerText = data.coins;
@@ -113,7 +78,7 @@ coin.onclick = async () => {
 
 // Клик по обычному сундуку
 chest.onclick = async () => {
-    const bonus = Math.floor(Math.random()*231) + 20; // 20-250 монет
+    const bonus = Math.floor(Math.random()*231) + 20;
     await addCoins(bonus);
     alert(`🎉 Поздравляем! Вы получили ${bonus} монет!`);
     chest.style.display='none';
@@ -121,12 +86,11 @@ chest.onclick = async () => {
 
 // Клик по золотому сундуку
 goldChest.onclick = async () => {
-    const bonus = Math.floor(Math.random()*501) + 500; // 500-1000 монет
+    const bonus = Math.floor(Math.random()*501) + 500;
     await addCoins(bonus);
     alert(`🌟 Вау! Вы нашли ЗОЛОТОЙ сундук и получили ${bonus} монет!`);
     goldChest.style.display='none';
 }
 </script>
-
 </body>
 </html>
