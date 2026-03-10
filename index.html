@@ -4,11 +4,34 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tap Coin + Lucky Chest</title>
 <style>
-body{background:#1b1b2f;color:white;font-family:Arial;text-align:center;margin-top:20px;}
+body{
+  background:#1b1b2f;
+  color:white;
+  font-family:Arial;
+  text-align:center;
+  margin-top:20px;
+}
 #coins{font-size:35px;margin:20px;}
-.coin, .chest, .gold-chest{width:180px;cursor:pointer;transition:0.2s;margin-top:20px;display:block;}
+input, button{
+  margin:5px;
+  padding:5px 10px;
+  border-radius:5px;
+  border:none;
+  font-weight:bold;
+  cursor:pointer;
+}
+button{background:#f0a500;color:black;}
+.coin, .chest, .gold-chest{
+  width:180px;
+  cursor:pointer;
+  transition:0.2s;
+  margin-top:20px;
+  display:block;
+}
+/* Анимация монеты */
 @keyframes jump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-30px) scale(1.3);}100%{transform:translateY(0) scale(1);}}
 .coin.jump{animation:jump 0.3s ease;}
+/* Анимация сундука */
 @keyframes chestJump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-20px) scale(1.1);}100%{transform:translateY(0) scale(1);}}
 .chest.jump,.gold-chest.jump{animation:chestJump 0.5s ease;}
 </style>
@@ -16,38 +39,69 @@ body{background:#1b1b2f;color:white;font-family:Arial;text-align:center;margin-t
 <body>
 
 <h1>🪙 Tap Coin + Lucky Chest</h1>
+
+<p>Ваш токен: <span id="tokenDisplay">нет</span></p>
+<button id="getToken">Получить токен</button>
+
+<p>Загрузите сюда свой токен:</p>
+<input id="loadToken" placeholder="Вставьте токен">
+<button id="loadBtn">Загрузить токен</button>
+
 <div id="coins">0</div>
+
 <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
+
 <img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/833/833314.png" style="display:none;">
 <img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/833/833310.png" style="display:none;">
 
 <script>
 const serverUrl = "https://tap-coin-server.onrender.com";
-let token = localStorage.getItem('token'); // получаем токен из браузера
+let token = localStorage.getItem('token');
 const display = document.getElementById('coins');
 const coin = document.querySelector('.coin');
 const chest = document.getElementById('chest');
 const goldChest = document.getElementById('goldChest');
+const tokenDisplay = document.getElementById('tokenDisplay');
 
-// Регистрируем/создаём токен
-async function register() {
-    const res = await fetch(`${serverUrl}/register`, {
+// Регистрация или получение нового токена
+async function register(newToken){
+    const res = await fetch(`${serverUrl}/register`,{
         method:"POST",
-        headers: {"Content-Type":"application/json"},
-        body: JSON.stringify({ token })
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({ token: newToken })
     });
     const data = await res.json();
     token = data.token;
     localStorage.setItem('token', token);
+    tokenDisplay.innerText = token;
     display.innerText = data.coins;
 }
-register();
+
+// Изначально регистрируем токен
+if(!token) register();
+else tokenDisplay.innerText = token;
+
+// Получить новый токен кнопкой
+document.getElementById('getToken').onclick = () => register();
+
+// Загрузить свой токен
+document.getElementById('loadBtn').onclick = async () => {
+    const t = document.getElementById('loadToken').value.trim();
+    if(!t) return alert("Введите токен");
+    token = t;
+    localStorage.setItem('token', token);
+    tokenDisplay.innerText = token;
+    // Загрузим количество монет
+    const res = await fetch(`${serverUrl}/coins?token=${token}`);
+    const data = await res.json();
+    display.innerText = data.coins;
+}
 
 // Добавление монет
 async function addCoins(amount){
-    const res = await fetch(`${serverUrl}/add`, {
+    const res = await fetch(`${serverUrl}/add`,{
         method:"POST",
-        headers: {"Content-Type":"application/json"},
+        headers:{"Content-Type":"application/json"},
         body: JSON.stringify({ token, amount })
     });
     const data = await res.json();
@@ -72,7 +126,7 @@ function maybeShowChest(){
 coin.onclick = async () => {
     await addCoins(1);
     coin.classList.add("jump");
-    setTimeout(()=> coin.classList.remove("jump"), 300);
+    setTimeout(()=> coin.classList.remove("jump"),300);
     maybeShowChest();
 }
 
@@ -92,5 +146,6 @@ goldChest.onclick = async () => {
     goldChest.style.display='none';
 }
 </script>
+
 </body>
 </html>
