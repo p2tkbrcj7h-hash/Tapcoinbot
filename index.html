@@ -34,6 +34,8 @@ button{background:#f0a500;color:black;}
 /* Анимация сундука */
 @keyframes chestJump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-20px) scale(1.1);}100%{transform:translateY(0) scale(1);}}
 .chest.jump,.gold-chest.jump{animation:chestJump 0.5s ease;}
+#game {display:none;}
+#readyMessage {color:#0f0;font-size:24px;margin:10px;}
 </style>
 </head>
 <body>
@@ -47,23 +49,28 @@ button{background:#f0a500;color:black;}
 <input id="loadToken" placeholder="Вставьте токен">
 <button id="loadBtn">Загрузить токен</button>
 
-<div id="coins">0</div>
+<button id="readyBtn">Готово</button>
+<p id="readyMessage"></p>
 
-<img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
-
-<img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/833/833314.png" style="display:none;">
-<img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/833/833310.png" style="display:none;">
+<div id="game">
+  <div id="coins">0</div>
+  <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
+  <img id="chest" class="chest" src="https://cdn-icons-png.flaticon.com/512/833/833314.png" style="display:none;">
+  <img id="goldChest" class="gold-chest" src="https://cdn-icons-png.flaticon.com/512/833/833310.png" style="display:none;">
+</div>
 
 <script>
-const serverUrl = "https://tap-coin-server.onrender.com"; // вставь свой сервер
+const serverUrl = "https://tap-coin-server.onrender.com"; // твой сервер
 let token = localStorage.getItem('token');
 const display = document.getElementById('coins');
 const coin = document.querySelector('.coin');
 const chest = document.getElementById('chest');
 const goldChest = document.getElementById('goldChest');
 const tokenDisplay = document.getElementById('tokenDisplay');
+const gameDiv = document.getElementById('game');
+const readyMessage = document.getElementById('readyMessage');
 
-// Функция регистрации / получения нового токена
+// Регистрация / получение токена
 async function register(newToken){
     const res = await fetch(`${serverUrl}/register`,{
         method:"POST",
@@ -77,14 +84,12 @@ async function register(newToken){
     display.innerText = data.coins;
 }
 
-// Изначально регистрируем токен, если нет
+// Изначально проверяем токен
 if(!token) register();
 else tokenDisplay.innerText = token;
 
-// Кнопка “Получить токен”
+// Кнопки получения и загрузки токена
 document.getElementById('getToken').onclick = () => register();
-
-// Кнопка загрузки своего токена
 document.getElementById('loadBtn').onclick = async () => {
     const t = document.getElementById('loadToken').value.trim();
     if(!t) return alert("Введите токен");
@@ -94,6 +99,13 @@ document.getElementById('loadBtn').onclick = async () => {
     const res = await fetch(`${serverUrl}/coins?token=${token}`);
     const data = await res.json();
     display.innerText = data.coins;
+}
+
+// Кнопка "Готово"
+document.getElementById('readyBtn').onclick = () => {
+    if(!token) return alert("Сначала получите или загрузите токен!");
+    readyMessage.innerText = "Готово ✅";
+    gameDiv.style.display = "block";
 }
 
 // Добавление монет
