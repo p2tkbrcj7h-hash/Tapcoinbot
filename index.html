@@ -70,14 +70,14 @@ body{
 <img class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png">
 
 <!-- Новый обычный сундук -->
-<img id="chest" class="chest" src="/mnt/data/a_digital_illustration_in_fantasy_art_style_showca.png" style="display:none;">
+<img id="chest" class="chest" src="https://i.ibb.co/7YQmV2x/chest.png" style="display:none;">
 
-<!-- Новый золотой сундук (можно использовать тот же) -->
-<img id="gold" class="gold" src="/mnt/data/a_digital_illustration_in_fantasy_art_style_showca.png" style="display:none;">
+<!-- Новый золотой сундук -->
+<img id="gold" class="gold" src="https://i.ibb.co/7YQmV2x/chest.png" style="display:none;">
 
 <script>
 const server="https://tap-coin-server.onrender.com";
-let token=null;
+let token=localStorage.getItem("token");
 
 const coinsDisplay=document.getElementById("coins");
 const coin=document.querySelector(".coin");
@@ -86,7 +86,7 @@ const gold=document.getElementById("gold");
 
 // Добавление монет
 async function addCoins(amount){
-  if(!token) return;
+  if(!token) return alert("Сначала получите токен!");
   const res = await fetch(server+"/add",{
     method:"POST",
     headers:{"Content-Type":"application/json"},
@@ -112,7 +112,6 @@ function maybeChest(){
 
 // Клик по монете
 coin.onclick = async ()=>{
-  if(!token) return alert("Сначала получите токен!");
   await addCoins(1);
   coin.classList.add("jump");
   setTimeout(()=> coin.classList.remove("jump"),300);
