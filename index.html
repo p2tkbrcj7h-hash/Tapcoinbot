@@ -11,41 +11,21 @@ body{
   text-align:center;
   margin-top:20px;
 }
+
 #coins{font-size:35px;margin:20px;}
-input{
-  padding:6px;
-  border-radius:5px;
-  border:none;
-}
-button{
-  padding:6px 10px;
-  border-radius:5px;
-  border:none;
-  background:#f0a500;
-  font-weight:bold;
-  cursor:pointer;
-  margin:5px;
-}
+input{padding:6px;border-radius:5px;border:none;}
+button{padding:6px 10px;border-radius:5px;border:none;background:#f0a500;font-weight:bold;cursor:pointer;margin:5px;}
 #game{display:none;}
 #ready{font-size:22px;color:#00ff00;margin:10px;}
-/* Кнопки для монеты и сундуков */
-.coinBtn, .chestBtn, .goldBtn{
-  width:170px;
-  height:170px;
-  border:none;
-  cursor:pointer;
-  margin-top:20px;
-  background-size:contain;
-  background-repeat:no-repeat;
-  background-position:center;
-  transition: opacity 0.3s;
-}
+#leaderboard{margin-top:20px;text-align:left;width:300px;margin-left:auto;margin-right:auto;}
+.chestBtn, .goldBtn{width:150px;height:150px;border:none;cursor:pointer;position:absolute;opacity:0;transition:all 0.4s ease;}
+@keyframes jump {0%{transform:translateY(0) scale(1);}50%{transform:translateY(-30px) scale(1.3);}100%{transform:translateY(0) scale(1);}}
+.coin.jump{animation:jump 0.3s ease;}
 </style>
 </head>
+
 <body>
-
 <h1>🪙 Tap Coin + Lucky Chest</h1>
-
 <p>Ваш токен: <span id="token">нет</span></p>
 <button id="getToken">Получить токен</button>
 <br><br>
@@ -57,100 +37,129 @@ button{
 
 <div id="game">
   <div id="coins">0</div>
-  <button id="coinBtn" class="coinBtn" 
-    style="background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAUVBMVEUAAAD///+fn5+tra3p6en5+fn09PTv7+/w8PDx8fHy8vLq6uq/v7/5+fnZ2dnw8PDl5eXv7++ampqhoaF+fn5/f3/8/Pyjo6OKiopYWFhP4Zc9AAAAEHRSTlMAEBAgICAhISEhISEhISEiYq+rAAAAB5JREFUGJVjYMAKmLgGxAAEAwMDG9gMDAwAAAwMDKwsDAwAABBgAAg4+uU3AAAAAElFTkSuQmCC');"></button>
-
-  <button id="chestBtn" class="chestBtn" 
-    style="background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAV1BMVEUAAAD///+fn5+tra3p6en5+fn09PTv7+/w8PDx8fHy8vLq6uq/v7/5+fnZ2dnw8PDl5eXv7++ampqhoaF+fn5/f3/8/Pyjo6OKiopYWFhP4Zc9AAAAIHRSTlMAEBAgICAhISEhISEhISEhISEhISEhISEhISEhISEiYp6VQAAAAi0lEQVQYV2NgIBYwEJDCACAwMDMyMDIwMDIyMjIyMDIyMDIyMDIyMDAyMDIyMjAwMDAyMDIyMjIyMDIyMDAwMDIyMjIwMDAwMDIwMDBgAAJtCCLYR1i+EAAAAASUVORK5CYII='); opacity:0;"></button>
-
-  <button id="goldBtn" class="goldBtn" 
-    style="background-image:url('data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAABAAAAAQCAMAAAAoLQ9TAAAAV1BMVEUAAAD///+fn5+tra3p6en5+fn09PTv7+/w8PDx8fHy8vLq6uq/v7/5+fnZ2dnw8PDl5eXv7++ampqhoaF+fn5/f3/8/Pyjo6OKiopYWFhP4Zc9AAAAIHRSTlMAEBAgICAhISEhISEhISEhISEhISEhISEhISEhISEiYp6VQAAAAi0lEQVQYV2NgIBYwEJDCACAwMDMyMDIwMDIyMjIyMDIyMDIyMDIyMDAyMDIyMjAwMDAyMDIyMjIyMDIyMDAwMDIyMjIwMDAwMDIwMDBgAAJtCCLYR1i+EAAAAASUVORK5CYII='); opacity:0;"></button>
+  <img id="coin" class="coin" src="https://cdn-icons-png.flaticon.com/512/138/138292.png" style="width:150px;cursor:pointer;">
+  
+  <!-- Обычный сундук -->
+  <img id="chest" class="chestBtn" src="https://i.ibb.co/0F8ZK1P/chest.png">
+  
+  <!-- Золотой сундук -->
+  <img id="gold" class="goldBtn" src="https://i.ibb.co/yYVYw3D/gold-chest.png">
 </div>
 
-<script>
-const server="https://tap-coin-server.onrender.com";
-let token=null;
+<div id="leaderboard"><h3>Лидерборд</h3><ul id="topPlayers"></ul></div>
 
-const tokenText=document.getElementById("token");
-const coins=document.getElementById("coins");
-const coinBtn=document.getElementById("coinBtn");
-const chestBtn=document.getElementById("chestBtn");
-const goldBtn=document.getElementById("goldBtn");
-const game=document.getElementById("game");
-const ready=document.getElementById("ready");
+<script>
+const server = "https://tap-coin-server.onrender.com";
+let token = null;
+
+const tokenText = document.getElementById("token");
+const coinsDisplay = document.getElementById("coins");
+const coin = document.getElementById("coin");
+const chest = document.getElementById("chest");
+const gold = document.getElementById("gold");
+const game = document.getElementById("game");
+const ready = document.getElementById("ready");
+const topPlayers = document.getElementById("topPlayers");
+
+// Скрыть сундуки сразу
+chest.style.opacity = 0;
+gold.style.opacity = 0;
 
 // Получить токен
-document.getElementById("getToken").onclick=async()=>{
-  const newToken=Math.random().toString(36).substring(2,10);
-  const res=await fetch(server+"/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token:newToken})
-  });
-  const data=await res.json();
-  token=data.token;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  coins.innerText=data.coins;
+document.getElementById("getToken").onclick = async () => {
+    const newToken = Math.random().toString(36).substring(2,10);
+    const res = await fetch(server+"/register", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({token:newToken})
+    });
+    const data = await res.json();
+    token = data.token;
+    localStorage.setItem("token", token);
+    tokenText.innerText = token;
+    coinsDisplay.innerText = data.coins;
 }
 
 // Загрузить токен
-document.getElementById("loadBtn").onclick=async()=>{
-  const t=document.getElementById("loadToken").value.trim();
-  if(!t) return alert("Введите токен");
-  token=t;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  const res=await fetch(server+"/coins?token="+token);
-  const data=await res.json();
-  coins.innerText=data.coins;
+document.getElementById("loadBtn").onclick = async () => {
+    const t = document.getElementById("loadToken").value.trim();
+    if(!t) return alert("Введите токен");
+    token = t;
+    localStorage.setItem("token", token);
+    tokenText.innerText = token;
+    const res = await fetch(server+"/coins?token="+token);
+    const data = await res.json();
+    coinsDisplay.innerText = data.coins;
 }
 
 // Кнопка готово
-document.getElementById("readyBtn").onclick=()=>{
-  if(!token){ alert("Сначала получите или загрузите токен!"); return;}
-  ready.innerText="Готово ✅";
-  game.style.display="block";
+document.getElementById("readyBtn").onclick = () => {
+    if(!token){ alert("Сначала получите или загрузите токен!"); return; }
+    ready.innerText = "Готово ✅";
+    game.style.display = "block";
+    loadLeaderboard();
 }
 
 // Добавление монет
 async function addCoins(amount){
-  if(!token) return;
-  const res=await fetch(server+"/add",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token,amount})
-  });
-  const data=await res.json();
-  coins.innerText=data.coins;
+    if(!token) return;
+    const res = await fetch(server+"/add", {
+        method:"POST",
+        headers:{"Content-Type":"application/json"},
+        body: JSON.stringify({token, amount})
+    });
+    const data = await res.json();
+    coinsDisplay.innerText = data.coins;
 }
 
-// Появление сундука
+// Случайное появление сундука
 function maybeChest(){
-  if(Math.random()<0.05) chestBtn.style.opacity = 1;
-  if(Math.random()<0.01) goldBtn.style.opacity = 1;
+    if(Math.random()<0.05){
+        chest.style.opacity = 1;
+        chest.style.top = (Math.random()*200+100)+"px";
+        chest.style.left = (Math.random()*200+50)+"px";
+    }
+    if(Math.random()<0.01){
+        gold.style.opacity = 1;
+        gold.style.top = (Math.random()*200+100)+"px";
+        gold.style.left = (Math.random()*200+50)+"px";
+    }
 }
 
 // Клик по монете
-coinBtn.onclick=async()=>{
-  await addCoins(1);
-  maybeChest();
+coin.onclick = async () => {
+    coin.classList.add("jump");
+    setTimeout(()=> coin.classList.remove("jump"),300);
+    await addCoins(1);
+    maybeChest();
 }
 
 // Клик по обычному сундуку
-chestBtn.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*231)+20;
-  await addCoins(bonus);
-  alert("🎉 Вы получили "+bonus+" монет");
-  chestBtn.style.opacity = 0;
+chest.onclick = async () => {
+    const bonus = Math.floor(Math.random()*231)+20;
+    await addCoins(bonus);
+    alert("🎉 Вы получили "+bonus+" монет");
+    chest.style.opacity = 0;
 }
 
 // Клик по золотому сундуку
-goldBtn.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*501)+500;
-  await addCoins(bonus);
-  alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
-  goldBtn.style.opacity = 0;
+gold.onclick = async () => {
+    const bonus = Math.floor(Math.random()*501)+500;
+    await addCoins(bonus);
+    alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
+    gold.style.opacity = 0;
+}
+
+// Лидерборд
+async function loadLeaderboard(){
+    const res = await fetch(server+"/leaderboard");
+    const data = await res.json();
+    topPlayers.innerHTML = "";
+    data.forEach(u => {
+        const li = document.createElement("li");
+        li.innerText = `${u.login}: ${u.coins} монет`;
+        topPlayers.appendChild(li);
+    });
 }
 </script>
 </body>
