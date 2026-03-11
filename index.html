@@ -3,55 +3,89 @@
 <head>
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Tap Coin</title>
+
 <style>
 body{
-  background:#1b1b2f;
-  color:white;
-  font-family:Arial;
-  text-align:center;
-  margin-top:20px;
+background:#1b1b2f;
+color:white;
+font-family:Arial;
+text-align:center;
+margin-top:40px;
 }
-#coins{font-size:35px;margin:20px;}
-input{padding:6px;border-radius:5px;border:none;}
+
+#coins{
+font-size:35px;
+margin:20px;
+}
+
+.coin{
+width:180px;
+cursor:pointer;
+transition:0.15s;
+}
+
+.coin:active{
+transform:scale(0.9);
+}
+
+.chest{
+width:160px;
+cursor:pointer;
+margin-top:20px;
+display:none;
+}
+
+.gold{
+width:160px;
+cursor:pointer;
+margin-top:20px;
+display:none;
+}
+
 button{
-  padding:6px 10px;
-  border-radius:5px;
-  border:none;
-  background:#f0a500;
-  font-weight:bold;
-  cursor:pointer;
-  margin:5px;
+padding:8px;
+margin:5px;
+border:none;
+border-radius:6px;
+cursor:pointer;
 }
-#game{display:none;}
-#ready{font-size:22px;color:#00ff00;margin:10px;}
-.coin,.chest,.gold{
-  width:170px;
-  cursor:pointer;
-  margin-top:20px;
+
+input{
+padding:6px;
+border-radius:6px;
+border:none;
 }
 </style>
 </head>
+
 <body>
 
 <h1>🪙 Tap Coin</h1>
-<p>Ваш токен: <span id="token">нет</span></p>
+
+<p>Токен: <span id="token">нет</span></p>
+
 <button id="getToken">Получить токен</button>
 <br><br>
-<input id="loadToken" placeholder="Вставьте токен">
-<button id="loadBtn">Загрузить токен</button>
-<br><br>
-<button id="readyBtn">Готово</button>
-<div id="ready"></div>
 
-<div id="game">
-  <div id="coins">0</div>
-  <img class="coin" src="images/coin.png" id="coin">
-  <img class="chest" src="images/chest.png" id="chest" style="display:none;">
-  <img class="gold" src="images/gold.png" id="gold" style="display:none;">
-</div>
+<input id="loadToken" placeholder="Вставь токен">
+<button id="loadBtn">Загрузить</button>
+
+<br><br>
+
+<div id="coins">0</div>
+
+<img src="images/coin.png" class="coin" id="coin">
+
+<br>
+
+<img src="images/chest.png" class="chest" id="chest">
+
+<img src="images/gold.png" class="gold" id="gold">
 
 <script>
+
 const server="https://tap-coin-server.onrender.com";
+
 let token=null;
 
 const tokenText=document.getElementById("token");
@@ -59,74 +93,106 @@ const coins=document.getElementById("coins");
 const coin=document.getElementById("coin");
 const chest=document.getElementById("chest");
 const gold=document.getElementById("gold");
-const game=document.getElementById("game");
-const ready=document.getElementById("ready");
+
+function randomToken(){
+return Math.random().toString(36).substring(2,12);
+}
 
 document.getElementById("getToken").onclick=async()=>{
-  const newToken=Math.random().toString(36).substring(2,10);
-  const res=await fetch(server+"/register",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token:newToken})
-  });
-  const data=await res.json();
-  token=data.token;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  coins.innerText=data.coins;
+
+token=randomToken();
+
+const res=await fetch(server+"/register",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({token})
+});
+
+const data=await res.json();
+
+localStorage.setItem("token",token);
+
+tokenText.innerText=token;
+
+coins.innerText=data.coins;
+
 }
 
 document.getElementById("loadBtn").onclick=async()=>{
-  const t=document.getElementById("loadToken").value.trim();
-  if(!t) return alert("Введите токен");
-  token=t;
-  localStorage.setItem("token",token);
-  tokenText.innerText=token;
-  const res=await fetch(server+"/coins?token="+token);
-  const data=await res.json();
-  coins.innerText=data.coins;
-}
 
-document.getElementById("readyBtn").onclick=()=>{
-  if(!token){ alert("Сначала получите или загрузите токен!"); return;}
-  ready.innerText="Готово ✅";
-  game.style.display="block";
+token=document.getElementById("loadToken").value;
+
+localStorage.setItem("token",token);
+
+tokenText.innerText=token;
+
+const res=await fetch(server+"/coins?token="+token);
+
+const data=await res.json();
+
+coins.innerText=data.coins;
+
 }
 
 async function addCoins(amount){
-  if(!token) return;
-  const res=await fetch(server+"/add",{
-    method:"POST",
-    headers:{"Content-Type":"application/json"},
-    body:JSON.stringify({token,amount})
-  });
-  const data=await res.json();
-  coins.innerText=data.coins;
-}
 
-function maybeChest(){
-  if(Math.random()<0.05) chest.style.display="block";
-  if(Math.random()<0.01) gold.style.display="block";
+const res=await fetch(server+"/add",{
+method:"POST",
+headers:{"Content-Type":"application/json"},
+body:JSON.stringify({token,amount})
+});
+
+const data=await res.json();
+
+coins.innerText=data.coins;
+
 }
 
 coin.onclick=async()=>{
-  await addCoins(1);
-  maybeChest();
+
+if(!token){
+alert("Сначала получи токен");
+return;
+}
+
+await addCoins(1);
+
+const rnd=Math.random();
+
+if(rnd<0.05){
+chest.style.display="block";
+}
+
+if(rnd<0.01){
+gold.style.display="block";
+}
+
 }
 
 chest.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*231)+20;
-  await addCoins(bonus);
-  alert("🎉 Вы получили "+bonus+" монет");
-  chest.style.display="none";
+
+const bonus=Math.floor(Math.random()*231)+20;
+
+await addCoins(bonus);
+
+alert("🎉 Сундук дал "+bonus+" монет");
+
+chest.style.display="none";
+
 }
 
 gold.onclick=async()=>{
-  const bonus=Math.floor(Math.random()*501)+500;
-  await addCoins(bonus);
-  alert("🌟 ЗОЛОТОЙ сундук! "+bonus+" монет");
-  gold.style.display="none";
+
+const bonus=Math.floor(Math.random()*501)+500;
+
+await addCoins(bonus);
+
+alert("🌟 Золотой сундук дал "+bonus+" монет");
+
+gold.style.display="none";
+
 }
+
 </script>
 
 </body>
